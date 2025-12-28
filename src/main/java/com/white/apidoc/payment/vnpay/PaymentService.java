@@ -41,23 +41,20 @@ public class PaymentService {
     }
 
     public PaymentDTO.VNPayResponse handlePaymentCallback(String status, String message, String url, BigDecimal amount, String invoiceId) {
-//        webClient.post()
-//                .uri(uriBuilder -> uriBuilder
-//                        .path("/invoices/{invoiceId}/record-payment")
-////                        .queryParam("amount", amount)
-//                        .build(invoiceId)
-//                )
-//                .retrieve()
-//                .bodyToMono(Void.class)
-//                .block();
-
-        String callbackUri = "http://localhost:8080/invoices/" + invoiceId + "/record-payment?amount=" + amount;
-
-        webClient.post()
-                .uri(callbackUri)
-                .retrieve()
-                .bodyToMono(Void.class)
-                .block();
+        try {
+            webClient.post()
+                    .uri(uriBuilder -> uriBuilder
+                            .path("/invoices/{invoiceId}/record-payment")
+                            .queryParam("amount", amount)
+                            .build(invoiceId)
+                    )
+                    .retrieve()
+                    .bodyToMono(Void.class)
+                    .block();
+        } catch (Exception e) {
+            log.error("Failed to record payment for invoice {}: {}", invoiceId, e.getMessage());
+            throw new RuntimeException("Failed to record payment: " + e.getMessage(), e);
+        }
 
         return PaymentDTO.VNPayResponse.builder()
                 .code(status)
